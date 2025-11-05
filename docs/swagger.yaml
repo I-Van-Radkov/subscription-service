@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: Subscription Service API
+  version: "1.0"
+  description: REST API for managing user subscriptions
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /subscriptions:
+    post:
+      summary: Create subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubstractionRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSubstractionResponse'
+        "400":
+          description: Bad request
+    get:
+      summary: List subscriptions for a user
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSubsListResponse'
+  /subscriptions/{id}:
+    get:
+      summary: Get subscription by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSubscriptionResponse'
+    put:
+      summary: Update subscription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubscriptionRequest'
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateSubscriptionResponse'
+    delete:
+      summary: Delete subscription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+  /subscriptions/summary:
+    get:
+      summary: Sum of subscriptions in period
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: service_name
+          in: query
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "07-2025"
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            example: "12-2025"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSubSumResponse'
+components:
+  schemas:
+    CreateSubstractionRequest:
+      type: object
+      required:
+        - service_name
+        - price
+        - user_id
+        - start_date
+      properties:
+        service_name:
+          type: string
+          example: "Yandex Plus"
+        price:
+          type: integer
+          example: 400
+        user_id:
+          type: string
+          format: uuid
+          example: "60601fee-2bf1-4721-ae6f-7636e79a0cba"
+        start_date:
+          type: string
+          example: "07-2025"
+        end_date:
+          type: string
+          example: "12-2025"
+    CreateSubstractionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "7f9c6e1e-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    GetSubscriptionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        service_name:
+          type: string
+        price:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+        end_date:
+          type: string
+          nullable: true
+    UpdateSubscriptionRequest:
+      type: object
+      properties:
+        service_name:
+          type: string
+        price:
+          type: integer
+        start_date:
+          type: string
+        end_date:
+          type: string
+    UpdateSubscriptionResponse:
+      allOf:
+        - $ref: '#/components/schemas/GetSubscriptionResponse'
+    GetSubSumResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+    GetSubsListResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetSubscriptionResponse'

@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: subscription-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: subscription-migrate
+    depends_on:
+      - db
+    command: ["./migrate", "-command", "up"]
+    env_file:
+      - ./config/.env
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: subscription-app
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    depends_on:
+      - migrate
+    command: ["./subscription-service"]
+
+volumes:
+  db_data:
